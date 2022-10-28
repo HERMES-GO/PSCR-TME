@@ -1,6 +1,8 @@
 #include <iostream>
 #include <unistd.h>
 
+using namespace std;
+
 int main () {
 	const int N = 3;
 	std::cout << "main pid=" << getpid() << std::endl;

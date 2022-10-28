@@ -14,6 +14,8 @@ class Queue {
 	size_t begin;
 	size_t sz;
 	mutable std::mutex m;
+	std::condition_variable cv;
+	bool block = true;
 
 	// fonctions private, sans protection mutex
 	bool empty() const {
@@ -33,9 +35,13 @@ public:
 	}
 	T* pop() {
 		std::unique_lock<std::mutex> lg(m);
-		if (empty()) {
-			return nullptr;
+		while (empty() && block) {
+			cv.wait(lg);
 		}
+		if(empty() && !block)
+			return nullptr;
+		cv.notify_one();
+
 		auto ret = tab[begin];
 		tab[begin] = nullptr;
 		sz--;
@@ -44,13 +50,14 @@ public:
 	}
 	bool push(T* elt) {
 		std::unique_lock<std::mutex> lg(m);
-		if (full()) {
+		while (full()) {
 			return false;
 		}
 		tab[(begin + sz) % allocsize] = elt;
 		sz++;
 		return true;
 	}
+	
 	~Queue() {
 		// ?? lock a priori inutile, ne pas detruire si on travaille encore avec
 		for (size_t i = 0; i < sz; i++) {
@@ -58,6 +65,12 @@ public:
 			delete tab[ind];
 		}
 		delete[] tab;
+	}
+
+	void setBlocking(bool isBlocking){
+		std::unique_lock<std::mutex> lg(m);
+		block = isBlocking;
+		cv.notify_all();
 	}
 };
 

@@ -1,15 +1,39 @@
 #include "Vec3D.h"
 #include "Rayon.h"
 #include "Scene.h"
+#include "Queue.h"
+#include "Pool.h"
 #include <iostream>
 #include <algorithm>
 #include <fstream>
 #include <limits>
 #include <random>
+#include <condition_variable>
 
 using namespace std;
 using namespace pr;
 
+
+class Barrier{
+    private:
+        mutex m;
+        int compteur;
+        int N;
+        condition_variable cv;
+    public:
+        Barrier(int N): compteur(0), N(N){}
+        void waitFor(){
+            unique_lock<mutex> l(m);
+            while(compteur < N){
+                cv.wait(l);
+            }
+        }
+        void done(){
+            unique_lock<mutex> l(m);
+            ++compteur;
+            if(compteur == N) cv.notify_all();
+        }
+};
 
 void fillScene(Scene & scene, default_random_engine & re) {
 	// Nombre de spheres (rend le probleme plus dur)
@@ -110,6 +134,15 @@ int main () {
 	Scene scene (1000,1000);
 	// remplir avec un peu d'aléatoire
 	fillScene(scene, re);
+
+	// implementation
+	Pool pool(20);
+	Barrier b(1);
+	int arg = 12;
+	int ret;
+	Job *j = new SleepJob(arg, &ret);
+	j->run();
+
 	
 	// lumieres 
 	vector<Vec3D> lights;
@@ -160,4 +193,3 @@ int main () {
 
 	return 0;
 }
-

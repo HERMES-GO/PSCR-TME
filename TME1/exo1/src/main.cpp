@@ -4,7 +4,7 @@
 #include <cstring>
 
 int main () {
-// NOUVEAU
+
 	std::string abc = "abc";
 	char * str = new char [3];
 	str[0] = 'a';

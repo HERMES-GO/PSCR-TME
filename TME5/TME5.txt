@@ -1,0 +1,8 @@
+TME5
+Le 21 octobre 2022
+
+Question 4.
+Cela a pris 12796 ms à exécuter le programme.
+J'ai bien l'image toto.ppm.
+
+Question 5.
